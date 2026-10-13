@@ -1,0 +1,34 @@
+# Artefactos y compilacion local
+target/
+*.jar
+*.war
+
+# Control de versiones y CI/CD
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Archivos de wrappers o dependencias locales
+.mvn/
+mvnw
+mvnw.cmd
+
+# Documentacion y multimedia
+*.md
+capturas/
+docs/
+
+# Archivos y carpetas de IDEs y editores
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+
+# Archivos de registro y temporales
+*.log
+tmp/
+.DS_Store
+Thumbs.db
