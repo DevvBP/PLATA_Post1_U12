@@ -1,0 +1,87 @@
+name: CI/CD Pipeline - Plataforma U12
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build y Pruebas Unitarias
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo fuente (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 21 Temurin con cache Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Compilar y Ejecutar Pruebas (Verify)
+        run: mvn clean verify
+
+      - name: Publicar Reportes de Pruebas Surefire
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-test-reports
+          path: target/surefire-reports/
+
+  docker-build:
+    name: Build Docker y Smoke Test
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo fuente (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Construir Imagen Docker
+        run: docker build -t mi-spring-app:${{ github.sha }} .
+
+      - name: Ejecutar Contenedor en Background para Smoke Test
+        run: |
+          docker run -d --name smoke-test -p 8080:8080 -e SPRING_PROFILES_ACTIVE=dev mi-spring-app:${{ github.sha }}
+
+      - name: Ejecutar Smoke Test con Curl hacia Actuator Health
+        run: |
+          echo "Iniciando verificacion de salud (Smoke Test)..."
+          ATTEMPTS=0
+          MAX_ATTEMPTS=15
+          SLEEP_SECONDS=4
+          SUCCESS=false
+
+          while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+            ATTEMPTS=$((ATTEMPTS+1))
+            echo "Intento $ATTEMPTS de $MAX_ATTEMPTS..."
+            
+            RESPONSE=$(curl -s http://localhost:8080/actuator/health || true)
+            echo "Respuesta recibida: $RESPONSE"
+            
+            if echo "$RESPONSE" | grep -q '"status":"UP"'; then
+              echo ">> Smoke Test superado con exito: la aplicacion reporta status UP."
+              SUCCESS=true
+              break
+            fi
+            
+            sleep $SLEEP_SECONDS
+          done
+
+          if [ "$SUCCESS" = false ]; then
+            echo ">> ERROR: El contenedor no supero el Smoke Test tras $MAX_ATTEMPTS intentos."
+            echo ">> Logs del contenedor:"
+            docker logs smoke-test
+            exit 1
+          fi
+
+      - name: Limpiar y Detener Contenedor
+        if: always()
+        run: |
+          echo "Deteniendo y removiendo contenedor de smoke test..."
+          docker stop smoke-test || true
+          docker rm -f smoke-test || true
