@@ -235,3 +235,23 @@ flowchart LR
         C4 -->|No| C6[Fallo de pipeline + Dump logs]
     end
 ```
+
+---
+
+## 📸 Evidencias de Ejecución y Pruebas
+
+A continuación se listan las capturas que validan el correcto funcionamiento en desarrollo local, containerización y el pipeline de CI/CD:
+
+| # | Evidencia | Descripción | Enlace |
+|---|:---|:---|:---|
+| **01** | **Perfil DEV Activo** | Arranque de la aplicación con perfil `dev` y H2 | [Ver captura](capturas/EjecuciónPerfilDev01.png) |
+| **02** | **Endpoint REST** | Consulta al endpoint `/api/productos` | [Ver captura](capturas/EndPointProductosDev02.png) |
+| **03** | **Docker Build** | Construcción multi-stage de la imagen Docker | [Ver captura](capturas/ConstrucciónImagenDocker.png) |
+| **04** | **Tamaño de Imagen** | Verificación del peso reducido con JRE Alpine | [Ver captura](capturas/DockerImageSize.png) |
+| **05** | **Usuario No Root** | Verificación de ejecución bajo el usuario sin privilegios `spring` | [Ver captura](capturas/DockerRunNoonRut.png) |
+| **06** | **Prueba de Contexto** | Ejecución de `mvn test` con `BUILD SUCCESS` | [Ver captura](capturas/MVNTestContext.png) |
+| **07** | **Actuator Health** | Respuesta exitosa `{"status":"UP"}` | [Ver captura](capturas/ActuathorHealt.png) |
+| **08** | **Pipeline CI/CD** | Ejecución exitosa de los 2 Jobs en GitHub Actions | [Ver captura](capturas/GitHubPipeLinesActions.png) |
+| **09** | **Smoke Test CI/CD** | Verificación del contenedor en el runner de GitHub | [Ver captura](capturas/GitHubActionsSmokeTest.png) |
+| **10** | **Historial Git** | Validación del cumplimiento de commits de la rúbrica | [Ver captura](capturas/CommitsRubrica.png) |
+
